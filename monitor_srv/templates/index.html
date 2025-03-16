@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Website Monitoring</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Cập nhật màu nền của .table-dark */
+        .table-dark {
+            --bs-table-bg: #079463 !important;
+        }
+
+        /* Căn chỉnh icon và tiêu đề */
+        .title-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; /* Khoảng cách giữa icon và text */
+        }
+
+        .title-icon {
+            height: 40px; /* Đặt chiều cao icon */
+            width: auto;
+        }
+
+        /* Chặn xuống dòng của Server và Type */
+        td {
+            white-space: nowrap;
+        }
+
+        /* Cho phép Error_Message xuống dòng thay vì kéo ngang */
+        .error-message {
+            white-space: normal;
+            word-wrap: break-word;
+            max-width: 300px; /* Giới hạn chiều rộng để tự động xuống dòng */
+        }
+
+        /* Bật thanh cuộn ngang nếu cần */
+        .table-responsive {
+            overflow-x: auto;
+        }
+    </style>
+
+    <script>
+        function fetchStatus() {
+            fetch("/status")
+                .then(response => response.json())
+                .then(data => {
+                    let tableBody = "";
+                    data.forEach((site, index) => {
+                        let status = site.status === "OK"
+                            ? "<span class='badge bg-success'>🟢 OK</span>"
+                            : "<span class='badge bg-danger'>🔴 DOWN</span>";
+
+                        let responseTime = site.response_time ? site.response_time + " ms" : "N/A";
+                        let lastChecked = site.last_checked !== "N/A" ? site.last_checked : "Chưa kiểm tra";
+                        let errorMessage = site.error_message !== "N/A" ? site.error_message : "-";
+
+                        tableBody += `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${site.server}</td>
+                                <td>${site.type}</td>
+	   			<td><a href="${site.url}" target="_blank">${site.url}</a></td>
+                                <td>${status}</td>
+                                <td>${responseTime}</td>
+                                <td>${lastChecked}</td>
+                                <td class="error-message">${errorMessage}</td>
+                            </tr>
+                        `;
+                    });
+                    document.getElementById("table-body").innerHTML = tableBody;
+                })
+                .catch(error => console.error("Lỗi tải dữ liệu:", error));
+        }
+        setInterval(fetchStatus, 10000); // Cập nhật mỗi 10 giây
+        window.onload = fetchStatus;
+    </script>
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <!-- Tiêu đề với icon -->
+        <div class="title-container">
+            <img src="https://icem.com.au/wp-content/uploads/2020/01/ICEM-logo.jpg-e1578902137843.jpg" 
+                 alt="ICEM Logo" class="title-icon">
+            <h2>🌍 Website Monitoring</h2>
+        </div>
+
+        <div class="card shadow p-3 mt-4">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark text-white">
+                        <tr>
+                            <th>No</th>
+                            <th>Server</th>
+                            <th>Type</th>
+                            <th>Website</th>
+                            <th>Status</th>
+                            <th>Response Time</th>
+                            <th>Last Checked</th>
+                            <th>Error Message</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <tr><td colspan="8" class="text-center">loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
